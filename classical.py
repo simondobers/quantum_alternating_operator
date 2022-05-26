@@ -4,6 +4,14 @@ from itertools import permutations
 import sys
 
 def create_tsp_graph(num_nodes : int) -> np.array:
+    """Create random TSP graph
+
+    Args:
+        num_nodes (int): Number of cities in the TSP problem 
+
+    Returns:
+        np.array: weight matrix of the TSP 
+    """
     #create random matrix and assure that there are no 0 costs
     graph = np.random.rand(num_nodes,num_nodes) + 0.1 
 
