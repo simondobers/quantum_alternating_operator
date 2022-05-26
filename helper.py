@@ -47,6 +47,11 @@ def cost(graph : np.array , path :List) -> float:
     return cost
 
 def plot_tsp_graph(tsp_matrix : np.array) -> None:
+    """Plot the weighted graph of a TSP
+
+    Args:
+        tsp_matrix (np.array): TSP graph, represented as symmetric np.array
+    """
     G = nx.Graph()
     for i in range(tsp_matrix.shape[0]):
         for j in range(i+1,tsp_matrix.shape[0]):
