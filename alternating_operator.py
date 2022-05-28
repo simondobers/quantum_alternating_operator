@@ -1,5 +1,6 @@
 from qiskit import QuantumCircuit
 from qiskit.quantum_info.operators import Operator, Pauli
+from qiskit.opflow import SummedOp,PrimitiveOp
 import numpy as np
 
 def create_initial_state_circuit(num_nodes : int) ->QuantumCircuit:
@@ -40,7 +41,7 @@ def S_Plus(num_nodes : int, city : int, time:int)-> Operator:
     # define Operator where i*Y acts on qubit {qubit}, else I
     pauli_y_string = 'i'+''.join(['I' if i!=qubit else 'Y' for i in range(nqubits-1,-1,-1) ])
 
-    return Operator(Pauli(pauli_x_string)) + Operator(Pauli(pauli_y_string))
+    return PrimitiveOp(Pauli(pauli_x_string)) + PrimitiveOp(Pauli(pauli_y_string))
 
 
 def S_Minus(num_nodes : int, city : int, time:int)-> Operator:
@@ -63,7 +64,7 @@ def S_Minus(num_nodes : int, city : int, time:int)-> Operator:
     # define Operator where i*Y acts on qubit {qubit}, else I
     pauli_y_string = 'i'+''.join(['I' if i!=qubit else 'Y' for i in range(nqubits-1,-1,-1) ])
 
-    return Operator(Pauli(pauli_x_string)) - Operator(Pauli(pauli_y_string))
+    return PrimitiveOp(Pauli(pauli_x_string)) - PrimitiveOp(Pauli(pauli_y_string))
 
 def create_mixer_operator(num_nodes:int)->Operator:
     """Create mixing Operator according to equation (54)-(58) from https://arxiv.org/pdf/1709.03489.pdf
@@ -90,14 +91,14 @@ def create_mixer_operator(num_nodes:int)->Operator:
                 second_part.compose(S_Minus(num_nodes, v, i+1))
                 second_part.compose(S_Plus(num_nodes, u, i+1))
                 second_part.compose(S_Plus(num_nodes, v, i))
-                mixer_operators.append(first_part + second_part)
+                mixer_operators.append((first_part + second_part))
     
     # combine into one Operator
     mixer_operator = mixer_operators[0]
     for operator in mixer_operators[1:]:
         mixer_operator += operator
 
-    return mixer_operator
+    return SummedOp(mixer_operators)
 
 def create_phase_separator(graph:np.array) -> Operator:
     """Create Phase Separator according to equation (53) from https://arxiv.org/pdf/1709.03489.pdf 
@@ -126,11 +127,11 @@ def create_phase_separator(graph:np.array) -> Operator:
                     pauli_z2_string = ''.join(['I' if i!=qubit_2 else 'Z' for i in range(nqubits-1,-1,-1) ])
 
                     # Append with Z1 * Z2 (compose needs reverse order)
-                    phase_separators.append(Operator(Pauli(pauli_z2_string)).compose(Operator(Pauli(pauli_z1_string))))
+                    phase_separators.append(PrimitiveOp(Pauli(pauli_z2_string)).compose(PrimitiveOp(Pauli(pauli_z1_string))))
     
     # combine into one Operator
     phase_separator = phase_separators[0]
     for operator in phase_separators[1:]:
         phase_separator += operator
 
-    return phase_separator
+    return SummedOp(phase_separators)
