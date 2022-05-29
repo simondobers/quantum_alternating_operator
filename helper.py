@@ -72,12 +72,12 @@ def plot_tsp_graph(tsp_matrix : np.array) -> None:
     plt.show()
 
 
-def bitstring_to_path(bitstring:str)->List:
+def bitstring_to_path(bitstring:str,return_as_string=False)->List:
     """Converts bitstring encoding to path, e.g. for 3 cities: 010100001 -> [1,0,2] 
 
     Args:
         bitstring (str): bitstring of a path, size ncities**2
-
+        return_as_string (Boolean): Whether the path should be returned as string, for plotting purposes
     Returns:
         List: Order in which cities are visited in integer format, e.g. [0, 1, 3, 2], None if bitstring does not represent a valid path
     """
@@ -100,5 +100,7 @@ def bitstring_to_path(bitstring:str)->List:
     except ValueError:
         return None
 
+    if return_as_string:
+        path = str(path)
     return path 
 
