@@ -88,8 +88,14 @@ def bitstring_to_path(bitstring:str)->List:
     
     try:
         for i in range(0,len(bitstring),ncities):
-            path.append(bitstring[i:i+ncities].index('1'))
-    
+
+            if bitstring[i:i+ncities].count('1') == 1:
+              path.append(bitstring[i:i+ncities].index('1'))
+            
+            # invalid path, eg. 011000111
+            else:
+                return None
+            
     # not a valid path, e.g. 0000000
     except ValueError:
         return None
