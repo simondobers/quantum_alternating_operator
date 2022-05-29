@@ -1,3 +1,4 @@
+from xmlrpc.client import Boolean
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -69,3 +70,29 @@ def plot_tsp_graph(tsp_matrix : np.array) -> None:
     plt.axis("off")
     plt.tight_layout()
     plt.show()
+
+
+def bitstring_to_path(bitstring:str)->List:
+    """Converts bitstring encoding to path, e.g. for 3 cities: 010100001 -> [1,0,2] 
+
+    Args:
+        bitstring (str): bitstring of a path, size ncities**2
+
+    Returns:
+        List: Order in which cities are visited in integer format, e.g. [0, 1, 3, 2], None if bitstring does not represent a valid path
+    """
+    # maybe include checks whether this is actually an integer ? 
+    ncities = int(len(bitstring)**0.5)
+
+    path = []
+    
+    try:
+        for i in range(0,len(bitstring),ncities):
+            path.append(bitstring[i:i+ncities].index('1'))
+    
+    # not a valid path, e.g. 0000000
+    except ValueError:
+        return None
+
+    return path 
+
