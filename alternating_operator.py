@@ -67,7 +67,7 @@ def S_Minus(num_nodes : int, city : int, time:int)-> Operator:
     return PrimitiveOp(Pauli(pauli_x_string)) - PrimitiveOp(Pauli(pauli_y_string))
 
 def create_mixer_operator(num_nodes:int)->Operator:
-    """Create mixing Operator according to equation (54)-(58) from https://arxiv.org/pdf/1709.03489.pdf
+    """Create mixing Operator according to equation (58) from https://arxiv.org/pdf/1709.03489.pdf
 
     Args:
         num_nodes (int): number of cities in the TSP problem
@@ -83,14 +83,14 @@ def create_mixer_operator(num_nodes:int)->Operator:
                 u = city_1
                 v = city_2
                 first_part = S_Plus(num_nodes, u, i)
-                first_part.compose(S_Plus(num_nodes, v, i+1))
-                first_part.compose(S_Minus(num_nodes, u, i+1))
-                first_part.compose(S_Minus(num_nodes, v, i))
+                first_part.compose(S_Plus(num_nodes, v, i+1),front=True)
+                first_part.compose(S_Minus(num_nodes, u, i+1),front=True)
+                first_part.compose(S_Minus(num_nodes, v, i),front=True)
 
                 second_part = S_Minus(num_nodes, u, i)
-                second_part.compose(S_Minus(num_nodes, v, i+1))
-                second_part.compose(S_Plus(num_nodes, u, i+1))
-                second_part.compose(S_Plus(num_nodes, v, i))
+                second_part.compose(S_Minus(num_nodes, v, i+1),front=True)
+                second_part.compose(S_Plus(num_nodes, u, i+1),front=True)
+                second_part.compose(S_Plus(num_nodes, v, i),front=True)
                 mixer_operators.append((first_part + second_part))
     
     # combine into one Operator
@@ -127,7 +127,7 @@ def create_phase_separator(graph:np.array) -> Operator:
                     pauli_z2_string = ''.join(['I' if i!=qubit_2 else 'Z' for i in range(nqubits-1,-1,-1) ])
 
                     # Append with Z1 * Z2 (compose needs reverse order)
-                    phase_separators.append(PrimitiveOp(Pauli(pauli_z2_string)).compose(PrimitiveOp(Pauli(pauli_z1_string))))
+                    phase_separators.append(distance * PrimitiveOp(Pauli(pauli_z2_string)).compose(PrimitiveOp(Pauli(pauli_z1_string))))
     
     # combine into one Operator
     phase_separator = phase_separators[0]
