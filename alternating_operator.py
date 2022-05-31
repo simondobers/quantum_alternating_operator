@@ -33,15 +33,15 @@ def S_Plus(num_nodes : int, city : int, time:int)-> Operator:
         Operator: The S_Plus Operator
     """
     nqubits = num_nodes**2
-    qubit = time * num_nodes + city
+    qubit = city * num_nodes + time
     
     # define Operator where X acts on qubit {qubit}, else I
     pauli_x_string = ''.join(['I' if i!=qubit else 'X' for i in range(nqubits-1,-1,-1) ])
 
     # define Operator where i*Y acts on qubit {qubit}, else I
-    pauli_y_string = 'i'+''.join(['I' if i!=qubit else 'Y' for i in range(nqubits-1,-1,-1) ])
+    pauli_y_string = ''.join(['I' if i!=qubit else 'Y' for i in range(nqubits-1,-1,-1) ])
 
-    return PrimitiveOp(Pauli(pauli_x_string)) + PrimitiveOp(Pauli(pauli_y_string))
+    return PrimitiveOp(Pauli(pauli_x_string)) + 1j* PrimitiveOp(Pauli(pauli_y_string))
 
 
 def S_Minus(num_nodes : int, city : int, time:int)-> Operator:
@@ -56,15 +56,15 @@ def S_Minus(num_nodes : int, city : int, time:int)-> Operator:
         Operator: The S_Plus Operator
     """
     nqubits = num_nodes**2
-    qubit = time * num_nodes + city
+    qubit = city * num_nodes + time
     
     # define Operator where X acts on qubit {qubit}, else I
     pauli_x_string = ''.join(['I' if i!=qubit else 'X' for i in range(nqubits-1,-1,-1) ])
 
     # define Operator where i*Y acts on qubit {qubit}, else I
-    pauli_y_string = 'i'+''.join(['I' if i!=qubit else 'Y' for i in range(nqubits-1,-1,-1) ])
+    pauli_y_string = ''.join(['I' if i!=qubit else 'Y' for i in range(nqubits-1,-1,-1) ])
 
-    return PrimitiveOp(Pauli(pauli_x_string)) - PrimitiveOp(Pauli(pauli_y_string))
+    return PrimitiveOp(Pauli(pauli_x_string)) - 1j* PrimitiveOp(Pauli(pauli_y_string))
 
 def create_mixer_operator(num_nodes:int)->Operator:
     """Create mixing Operator according to equation (54)-(58) from https://arxiv.org/pdf/1709.03489.pdf
@@ -76,27 +76,25 @@ def create_mixer_operator(num_nodes:int)->Operator:
         Operator: Mixer Operator
     """
     mixer_operators = []
-    for t in range(num_nodes - 1):
+    for t in range(num_nodes-1):
         for city_1 in range(num_nodes):
             for city_2 in range(num_nodes):
+                # swap city_1 at t=i, city_2 at t=i+1 <-> city_1 at t=i+1, city_2 at t=i
+                # if current state is city_1 at t=i, city_2 at t=i+1 (see eq. (58))
                 i = t
                 u = city_1
                 v = city_2
                 first_part = S_Plus(num_nodes, u, i)
-                first_part.compose(S_Plus(num_nodes, v, i+1))
-                first_part.compose(S_Minus(num_nodes, u, i+1))
-                first_part.compose(S_Minus(num_nodes, v, i))
+                first_part = first_part.compose(S_Plus(num_nodes, v, i+1),front=True)
+                first_part = first_part.compose(S_Minus(num_nodes, u, i+1),front=True)
+                first_part = first_part.compose(S_Minus(num_nodes, v, i),front=True)
 
                 second_part = S_Minus(num_nodes, u, i)
-                second_part.compose(S_Minus(num_nodes, v, i+1))
-                second_part.compose(S_Plus(num_nodes, u, i+1))
-                second_part.compose(S_Plus(num_nodes, v, i))
+                second_part = second_part.compose(S_Minus(num_nodes, v, i+1),front=True)
+                second_part = second_part.compose(S_Plus(num_nodes, u, i+1),front=True)
+                second_part = second_part.compose(S_Plus(num_nodes, v, i),front=True)
                 mixer_operators.append((first_part + second_part))
     
-    # combine into one Operator
-    mixer_operator = mixer_operators[0]
-    for operator in mixer_operators[1:]:
-        mixer_operator += operator
 
     return SummedOp(mixer_operators)
 
@@ -127,11 +125,6 @@ def create_phase_separator(graph:np.array) -> Operator:
                     pauli_z2_string = ''.join(['I' if i!=qubit_2 else 'Z' for i in range(nqubits-1,-1,-1) ])
 
                     # Append with Z1 * Z2 (compose needs reverse order)
-                    phase_separators.append(PrimitiveOp(Pauli(pauli_z2_string)).compose(PrimitiveOp(Pauli(pauli_z1_string))))
+                    phase_separators.append(distance * PrimitiveOp(Pauli(pauli_z2_string)).compose(PrimitiveOp(Pauli(pauli_z1_string))))
     
-    # combine into one Operator
-    phase_separator = phase_separators[0]
-    for operator in phase_separators[1:]:
-        phase_separator += operator
-
     return SummedOp(phase_separators)
