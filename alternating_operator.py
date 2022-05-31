@@ -176,7 +176,6 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
         Callable[[List[float]],float]: Function that takes as argument a list of parameters [ß,y] and computes the expectation(cost) for that parametrization.
                                        This function gets passed to the optimizer in order to find the best parameters for the circuit.
     """
-    
     simulator = Aer.get_backend('aer_simulator')
     simulator.shots = shots
     
@@ -184,7 +183,7 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
         # theta = [ß , y]
         
         qc = create_qaoa_circ(G, reps=reps)
-        qc = transpile(qc, simulator)
+        qc = transpile(qc, simulator,optimization_level = 3)
         
         # create parameter dictionary 
         params = {}
