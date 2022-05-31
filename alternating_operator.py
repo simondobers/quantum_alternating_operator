@@ -67,7 +67,7 @@ def S_Minus(num_nodes : int, city : int, time:int)-> Operator:
     return PrimitiveOp(Pauli(pauli_x_string)) - 1j* PrimitiveOp(Pauli(pauli_y_string))
 
 def create_mixer_operator(num_nodes:int)->Operator:
-    """Create mixing Operator according to equation (58) from https://arxiv.org/pdf/1709.03489.pdf
+    """Create mixing Operator according to equation (54)-(58) from https://arxiv.org/pdf/1709.03489.pdf
 
     Args:
         num_nodes (int): number of cities in the TSP problem
@@ -79,18 +79,20 @@ def create_mixer_operator(num_nodes:int)->Operator:
     for t in range(num_nodes-1):
         for city_1 in range(num_nodes):
             for city_2 in range(num_nodes):
+                # swap city_1 at t=i, city_2 at t=i+1 <-> city_1 at t=i+1, city_2 at t=i
+                # if current state is city_1 at t=i, city_2 at t=i+1 (see eq. (58))
                 i = t
                 u = city_1
                 v = city_2
                 first_part = S_Plus(num_nodes, u, i)
-                first_part.compose(S_Plus(num_nodes, v, i+1),front=True)
-                first_part.compose(S_Minus(num_nodes, u, i+1),front=True)
-                first_part.compose(S_Minus(num_nodes, v, i),front=True)
+                first_part = first_part.compose(S_Plus(num_nodes, v, i+1),front=True)
+                first_part = first_part.compose(S_Minus(num_nodes, u, i+1),front=True)
+                first_part = first_part.compose(S_Minus(num_nodes, v, i),front=True)
 
                 second_part = S_Minus(num_nodes, u, i)
-                second_part.compose(S_Minus(num_nodes, v, i+1),front=True)
-                second_part.compose(S_Plus(num_nodes, u, i+1),front=True)
-                second_part.compose(S_Plus(num_nodes, v, i),front=True)
+                second_part = second_part.compose(S_Minus(num_nodes, v, i+1),front=True)
+                second_part = second_part.compose(S_Plus(num_nodes, u, i+1),front=True)
+                second_part = second_part.compose(S_Plus(num_nodes, v, i),front=True)
                 mixer_operators.append((first_part + second_part))
     
 
