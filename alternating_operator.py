@@ -191,7 +191,7 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
             params[key] = [value]
 
         counts = simulator.run(qc,parameter_binds=[params],  seed_simulator=10, 
-                             nshots=512).result().get_counts()
+                             nshots=shots).result().get_counts()
         
         return compute_expectation(counts, G)
     

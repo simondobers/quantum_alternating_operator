@@ -19,11 +19,11 @@ def solve_tsp_classical(graph : np.array , starting_city=0) -> Tuple :
     best_path = []
 
     #get all other cities except for the starting one
-    remaining_cities = [i for i in range(graph.shape[0]) if i != starting_city]
+    remaining_cities = [i for i in range(graph.shape[0])]
 
     # check all possible permutations
     for permutation in permutations(remaining_cities):
-        current_path = [starting_city] + list(permutation)
+        current_path = list(permutation)
         current_cost = cost(graph,current_path)
 
         # check if current path is better than currently best path 
