@@ -44,7 +44,7 @@ def cost(graph : np.array , path :List) -> float:
         last_city = next_city
 
     # add path from last to first city
-    cost += graph[last_city,0]
+    cost += graph[last_city,path[0]]
     return cost
 
 def plot_tsp_graph(tsp_matrix : np.array) -> None:
