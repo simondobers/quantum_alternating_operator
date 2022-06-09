@@ -8,6 +8,8 @@ from helper import bitstring_to_path,cost
 import numpy as np
 import matplotlib.figure
 
+from qaoa import bit
+
 class InvalidMixerException(Exception):
     """Exception to raise if invalid solutions are measured (mixer has to preserve the feasible subspace)
 
@@ -183,7 +185,7 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
         # theta = [ß , y]
         
         qc = create_qaoa_circ(G, reps=reps)
-        qc = transpile(qc, simulator,optimization_level = 3)
+        qc = transpile(qc, simulator,optimization_level = 1)
         
         # create parameter dictionary 
         params = {}
@@ -198,7 +200,7 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
     return execute_circ
 
 
-def compute_expectation(counts:Dict, G:np.array)->float:
+def compute_expectation(counts:Dict, G:np.array, print_progress=True)->float:
     """Computes the expectation of the cost for a given simulation result.
 
     Args:
@@ -224,7 +226,9 @@ def compute_expectation(counts:Dict, G:np.array)->float:
             
         avg += path_cost * count
         sum_count += count
-        
+    if print_progress:
+        print(f"Current expected cost: {round(avg/sum,2)}")  
+          
     return avg/sum_count 
 
 def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_path=True)->Tuple[matplotlib.figure.Figure,Dict]:
@@ -252,6 +256,8 @@ def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_p
     result = simulator.run(qc,parameter_binds=[params]).result()
     counts = result.get_counts()
     
+    counts = filter_unique_paths(G,counts)
+
     fig = plot_histogram(counts, title='Result of Optimization')
 
     if transform_labels_to_path:
@@ -263,3 +269,23 @@ def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_p
     
     return fig,counts
     
+
+def filter_unique_paths(G:np.array,counts:dict)->dict:
+    """Removes all duplicate paths
+
+    Args:
+        counts (dict): _description_
+
+    Returns:
+        dict: _description_
+    """
+
+    cost_dict = {}
+    for bitstring,count in counts.items():
+        path_cost = round(cost(G,bitstring_to_path(bitstring)),2)
+        if path_cost not in cost_dict:
+            cost_dict[path_cost] = [bitstring,count]
+        else:
+            cost_dict[path_cost] = [cost_dict[path_cost][0] , cost_dict[path_cost][1]+count]
+
+    return {value[0] : value[1] for _,value in cost_dict.items()}
