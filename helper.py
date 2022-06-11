@@ -14,7 +14,7 @@ def create_tsp_graph(num_nodes : int) -> np.array:
         np.array: weight matrix of the TSP 
     """
     #create random matrix and assure that there are no 0 costs
-    graph = np.random.rand(num_nodes,num_nodes) + 0.1 
+    graph = np.random.rand(num_nodes,num_nodes)*100 + 0.1 
 
     #set diagonal values to 0 
     for i in range(num_nodes):
