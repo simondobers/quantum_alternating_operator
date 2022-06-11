@@ -195,7 +195,6 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
         counts = simulator.run(qc,parameter_binds=[params],  seed_simulator=10, 
                              nshots=shots).result().get_counts()
         
-        print(counts)
         return compute_expectation(counts, G)
     
     return execute_circ
