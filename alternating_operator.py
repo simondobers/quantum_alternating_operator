@@ -182,8 +182,8 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
     simulator.shots = shots
     
     qc = create_qaoa_circ(G, reps=reps)
-    qc = transpile(qc, simulator,optimization_level = 1)
-    
+    qc = transpile(qc, simulator,optimization_level = 3)
+
     def execute_circ(theta):
         # theta = [ß , y]
 
@@ -192,10 +192,10 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
         for key,value in zip(qc.parameters,theta):
             params[key] = [value]
 
-
         counts = simulator.run(qc,parameter_binds=[params],  seed_simulator=10, 
                              nshots=shots).result().get_counts()
         
+        print(counts)
         return compute_expectation(counts, G)
     
     return execute_circ
@@ -245,16 +245,16 @@ def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_p
         Tuple[matplotlib.figure.Figure,Dict]: Histogram plot of counts, Key value pairs of bitsting(QuantumState) and how often this state was measured. E.g. {'100010001':317,'100001010':210}
     """
     simulator = Aer.get_backend('aer_simulator')
-    simulator.shots = 512
+    simulator.shots = 1024
     
     qc = create_qaoa_circ(G,reps=reps)
-    qc = transpile(qc, simulator)
+    qc = transpile(qc, simulator,optimization_level=3)
     
     params = {}
     for key,value in zip(qc.parameters,theta_res):
         params[key] = [value]
 
-    result = simulator.run(qc,parameter_binds=[params]).result()
+    result = simulator.run(qc,parameter_binds=[params],  seed_simulator=10,nshots=1024).result()
     counts = result.get_counts()
     
     # remove duplicate path, e.g. [0,1,2] = [2,0,1]
