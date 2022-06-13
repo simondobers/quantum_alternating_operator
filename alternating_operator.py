@@ -179,12 +179,12 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
     simulator = Aer.get_backend('aer_simulator')
     simulator.shots = shots
     
+    qc = create_qaoa_circ(G, reps=reps)
+    qc = transpile(qc, simulator,optimization_level = 3)
+
     def execute_circ(theta):
         # theta = [ß , y]
-        
-        qc = create_qaoa_circ(G, reps=reps)
-        qc = transpile(qc, simulator,optimization_level = 3)
-        
+
         # create parameter dictionary 
         params = {}
         for key,value in zip(qc.parameters,theta):
@@ -198,7 +198,7 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
     return execute_circ
 
 
-def compute_expectation(counts:Dict, G:np.array)->float:
+def compute_expectation(counts:Dict, G:np.array, print_progress=True)->float:
     """Computes the expectation of the cost for a given simulation result.
 
     Args:
@@ -224,10 +224,12 @@ def compute_expectation(counts:Dict, G:np.array)->float:
             
         avg += path_cost * count
         sum_count += count
-        
+    if print_progress:
+        print(f"Current expected cost: {round(avg/sum_count,2)}")  
+          
     return avg/sum_count 
 
-def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_path=True)->Tuple[matplotlib.figure.Figure,Dict]:
+def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_path=True,filter_unique_path=True)->Tuple[matplotlib.figure.Figure,Dict]:
     """Creates a plot of the measurements of the qaoa circuit for a given parametrization
 
     Args:
@@ -240,18 +242,22 @@ def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_p
         Tuple[matplotlib.figure.Figure,Dict]: Histogram plot of counts, Key value pairs of bitsting(QuantumState) and how often this state was measured. E.g. {'100010001':317,'100001010':210}
     """
     simulator = Aer.get_backend('aer_simulator')
-    simulator.shots = 512
+    simulator.shots = 1024
     
     qc = create_qaoa_circ(G,reps=reps)
-    qc = transpile(qc, simulator)
+    qc = transpile(qc, simulator,optimization_level=3)
     
     params = {}
     for key,value in zip(qc.parameters,theta_res):
         params[key] = [value]
 
-    result = simulator.run(qc,parameter_binds=[params]).result()
+    result = simulator.run(qc,parameter_binds=[params],  seed_simulator=10,nshots=1024).result()
     counts = result.get_counts()
     
+    # remove duplicate path, e.g. [0,1,2] = [2,0,1]
+    if filter_unique_path:
+        counts = filter_unique_paths(G,counts)
+
     fig = plot_histogram(counts, title='Result of Optimization')
 
     if transform_labels_to_path:
@@ -263,3 +269,23 @@ def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_p
     
     return fig,counts
     
+
+def filter_unique_paths(G:np.array,counts:dict)->dict:
+    """Removes all duplicate paths
+
+    Args:
+        counts (dict): _description_
+
+    Returns:
+        dict: _description_
+    """
+
+    cost_dict = {}
+    for bitstring,count in counts.items():
+        path_cost = round(cost(G,bitstring_to_path(bitstring)),2)
+        if path_cost not in cost_dict:
+            cost_dict[path_cost] = [bitstring,count]
+        else:
+            cost_dict[path_cost] = [cost_dict[path_cost][0] , cost_dict[path_cost][1]+count]
+
+    return {value[0] : value[1] for _,value in cost_dict.items()}
