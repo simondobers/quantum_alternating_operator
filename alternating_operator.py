@@ -8,8 +8,6 @@ from helper import bitstring_to_path,cost
 import numpy as np
 import matplotlib.figure
 
-from qaoa import bit
-
 class InvalidMixerException(Exception):
     """Exception to raise if invalid solutions are measured (mixer has to preserve the feasible subspace)
 
