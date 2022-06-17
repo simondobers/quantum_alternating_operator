@@ -4,7 +4,7 @@ from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.circuit.library import QAOAAnsatz
 from qiskit.opflow import SummedOp,PrimitiveOp
 from qiskit.tools.visualization import plot_histogram
-from helper import bitstring_to_path,cost
+from helper import bitstring_to_path, cost
 import numpy as np
 import matplotlib.figure
 import pickle
@@ -294,7 +294,7 @@ def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_p
     return fig,counts
     
 
-def filter_unique_paths(G:np.array,counts:dict)->dict:
+def filter_unique_paths(G:np.array,counts:dict, unique_cost_dict=None)->dict:
     """Removes all duplicate paths
 
     Args:
@@ -304,18 +304,41 @@ def filter_unique_paths(G:np.array,counts:dict)->dict:
         dict: _description_
     """
 
-    cost_dict = {}
-    for bitstring,count in counts.items():
-        path = bitstring_to_path(bitstring)
-        if path is not None :
-            path_cost = round(cost(G,path),2)
+    if unique_cost_dict is None:
+        cost_dict = {}
+        for bitstring,count in counts.items():
+            path = bitstring_to_path(bitstring)
+            if path is not None :
+                path_cost = round(cost(G,path),2)
 
-            if path_cost not in cost_dict:
-                cost_dict[path_cost] = [bitstring,count]
-            else:
-                cost_dict[path_cost] = [cost_dict[path_cost][0] , cost_dict[path_cost][1]+count]
-        else :
-            # invalid path, e.g. from qaoa 
-            cost_dict[bitstring] = ['invalid',count]
+                if path_cost not in cost_dict:
+                    cost_dict[path_cost] = [bitstring,count]
+                else:
+                    cost_dict[path_cost] = [cost_dict[path_cost][0] , cost_dict[path_cost][1]+count]
+            else :
+                # invalid path, e.g. from qaoa 
+                cost_dict[path_cost] = ['invalid',count]
 
-    return {value[0] : value[1] for _,value in cost_dict.items()}
+
+    else : 
+        cost_dict = {}
+        unique_cost_dict = {round(val,2):key for key,val in unique_cost_dict.items()}
+
+        for bitstring,count in counts.items():
+            path = bitstring_to_path(bitstring)
+
+            if path is not None :
+                path_cost = round(cost(G,path),2)
+              
+                if path_cost not in cost_dict:
+                    cost_dict[path_cost] = [unique_cost_dict[path_cost],count]
+                else:
+                    cost_dict[path_cost] = [unique_cost_dict[path_cost], cost_dict[path_cost][1]+count]
+
+            else :
+                # invalid path, e.g. from qaoa 
+                cost_dict[path_cost] = ['invalid',count]
+
+            cost_dict = dict(sorted(cost_dict.items(), key=lambda item: item[0]))
+
+    return {value[0] : value[1] for _,value in cost_dict.items()}    

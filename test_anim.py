@@ -28,17 +28,28 @@ for shot in alternating_operator_counts:
 
             # check if path valid 
             if path is not None:
-                path_dic[bitstring] = cost(G,bitstring_to_path(bitstring))
+                path_cost = cost(G,bitstring_to_path(bitstring))
+
+                if path_cost not in path_dic:
+                    path_dic[path_cost] = bitstring
 
 # sort dic by cost 
-path_dic = filter_unique_paths(G,dict(sorted(path_dic.items(), key=lambda item: item[1])))
+path_dic = {val:key for key,val in path_dic.items()}
+path_dic = dict(sorted(path_dic.items(), key=lambda item: item[1]))
 
 
 def format_counts_for_plot(path_dic,counts):
     sorted_counts = {}
+    counts = filter_unique_paths(G,counts,unique_cost_dict=path_dic)
+    cnt = 0
     for bitstring,_ in path_dic.items():
         if bitstring in counts:
-            sorted_counts[bitstring] = counts[bitstring]/1024
+            cnt += counts[bitstring]
+            if bitstring not in sorted_counts:
+                sorted_counts[bitstring] = counts[bitstring]/1024
+            else : 
+                sorted_counts[bitstring] += counts[bitstring]/1024
+
         else : 
             sorted_counts[bitstring] = 0
 
@@ -49,11 +60,10 @@ for i,shot in enumerate(alternating_operator_counts):
     alternating_operator_counts[i] = format_counts_for_plot(path_dic,shot)
 
 
-
 fig,ax = plt.subplots()
 first = filter_unique_paths(G,alternating_operator_counts[0])
 
-bar = ax.bar([bitstring_to_path(bitstring, return_as_string=True) for bitstring in first.keys()],list(map(lambda x: x/1024,list(first.values()))))
+bar = ax.bar([bitstring_to_path(bitstring, return_as_string=True) for bitstring in first.keys()],first.values())
 labels = [bitstring_to_path(bitstring, return_as_string=True) for bitstring in first.keys()]
 ax.set_xticklabels(labels,rotation=45)   
 bar.patches[0].set_color("g")
@@ -61,7 +71,8 @@ ax.set_ylim([0,1.])
 
 def update_plot(step):
 
-    data = filter_unique_paths(G,alternating_operator_counts[step])
+    data = alternating_operator_counts[step]
+
     ax.set_title(f"Iteration: {step}")
     for count, single_bar in zip(data.values(),bar.patches):
         single_bar.set_height(count)
