@@ -309,7 +309,7 @@ def filter_unique_paths(G:np.array,counts:dict, unique_cost_dict=None)->dict:
         for bitstring,count in counts.items():
             path = bitstring_to_path(bitstring)
             if path is not None :
-                path_cost = round(cost(G,path),2)
+                path_cost = round(cost(G,path),3)
 
                 if path_cost not in cost_dict:
                     cost_dict[path_cost] = [bitstring,count]
@@ -322,13 +322,13 @@ def filter_unique_paths(G:np.array,counts:dict, unique_cost_dict=None)->dict:
 
     else : 
         cost_dict = {}
-        unique_cost_dict = {round(val,2):key for key,val in unique_cost_dict.items()}
+        unique_cost_dict = {round(val,3):key for key,val in unique_cost_dict.items()}
 
         for bitstring,count in counts.items():
             path = bitstring_to_path(bitstring)
 
             if path is not None :
-                path_cost = round(cost(G,path),2)
+                path_cost = round(cost(G,path),3)
               
                 if path_cost not in cost_dict:
                     cost_dict[path_cost] = [unique_cost_dict[path_cost],count]
@@ -337,7 +337,7 @@ def filter_unique_paths(G:np.array,counts:dict, unique_cost_dict=None)->dict:
 
             else :
                 # invalid path, e.g. from qaoa 
-                cost_dict[path_cost] = ['invalid',count]
+                cost_dict['invalid'] = ['invalid',count]
 
             cost_dict = dict(sorted(cost_dict.items(), key=lambda item: item[0]))
 

@@ -23,15 +23,14 @@ with open(".\\data\\G", "rb") as fp:   # Unpickling
 path_dic = {}
 for shot in alternating_operator_counts:
     for bitstring,count in shot.items():
-        if bitstring not in path_dic:
-            path = bitstring_to_path(bitstring)
+        path = bitstring_to_path(bitstring)
 
-            # check if path valid 
-            if path is not None:
-                path_cost = cost(G,bitstring_to_path(bitstring))
+        # check if path valid 
+        if path is not None:
+            path_cost = round(cost(G,path),3)
 
-                if path_cost not in path_dic:
-                    path_dic[path_cost] = bitstring
+            if path_cost not in path_dic:
+                path_dic[path_cost] = bitstring
 
 # sort dic by cost 
 path_dic = {val:key for key,val in path_dic.items()}
@@ -52,7 +51,7 @@ def format_counts_for_plot(path_dic,counts):
 
         else : 
             sorted_counts[bitstring] = 0
-
+    print(cnt)
     return sorted_counts
 
 # format all shots, such that they are ordered and can be plotted
