@@ -8,7 +8,7 @@ from typing import Dict, List,Callable,Tuple
 import numpy as np
 from alternating_operator import create_initial_state_circuit
 from helper import bitstring_to_path,cost
-
+import pickle
 
 # returns the bit index for an alpha and j
 def bit(ncities,alpha, j):
@@ -109,7 +109,7 @@ def compute_expectation(counts:Dict, G:np.array, print_progress=True)->float:
     return avg/sum_count 
 
 
-def get_expectation_qaoa(G:np.array, reps:int, shots=512,penalty=1.)-> Callable[[List[float]],float]:
+def get_expectation_qaoa(G:np.array, reps:int, shots=512,penalty=1.,log_intermediate_counts=False)-> Callable[[List[float]],float]:
     """ Returns function that takes as argument a list of parameters [ß,y] and computes the expectation for that parametrization
 
     Args:
@@ -128,6 +128,11 @@ def get_expectation_qaoa(G:np.array, reps:int, shots=512,penalty=1.)-> Callable[
     qc = create_classical_qaoa_circ(G, reps=reps, penalty=penalty)
     qc = transpile(qc, simulator,optimization_level = 1)
 
+    # initialize saving of data
+    if log_intermediate_counts:
+        with open(".\\data\\qaoa_counts", "wb") as fp:   #Pickling
+            pickle.dump([], fp)
+
     def execute_circ(theta):
         # theta = [ß , y]
 
@@ -138,7 +143,14 @@ def get_expectation_qaoa(G:np.array, reps:int, shots=512,penalty=1.)-> Callable[
 
         counts = simulator.run(qc,parameter_binds=[params],  seed_simulator=10, 
                              nshots=shots).result().get_counts()
-        
+        if log_intermediate_counts:
+            with open(".\\data\\qaoa_counts", "rb") as fp:   # Unpickling
+                        qaoa_counts = pickle.load(fp)
+                        qaoa_counts.append(counts)
+
+            with open(".\\data\\qaoa_counts", "wb") as fp:   #Pickling
+                pickle.dump(qaoa_counts,fp)
+
         return compute_expectation(counts, G)
     
     return execute_circ

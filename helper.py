@@ -99,7 +99,16 @@ def bitstring_to_path(bitstring:str,return_as_string=False)->List:
     # not a valid path, e.g. 0000000
     except ValueError:
         return None
+    # check if path contains multiple visits at cities -> invalid
+    check_dic = {}
+    for city in path:
+        if city in check_dic:
+            # already there -> invalid path 
+            return None
+        else :
+            check_dic[city] = 0
 
+            
     if return_as_string:
         path = str(path)
     return path 

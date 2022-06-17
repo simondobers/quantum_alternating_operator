@@ -9,8 +9,10 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 plt.style.use('seaborn')
+algorithm = "alternating_operator" # "alternating_operator"  or "qaoa" 
 
-with open(".\\data\\alternating_operator_counts", "rb") as fp:   # Unpickling
+
+with open(f".\\data\\{algorithm}_counts", "rb") as fp:   # Unpickling
     alternating_operator_counts = pickle.load(fp)
 
 with open(".\\data\\G", "rb") as fp:   # Unpickling
@@ -22,10 +24,15 @@ path_dic = {}
 for shot in alternating_operator_counts:
     for bitstring,count in shot.items():
         if bitstring not in path_dic:
-            path_dic[bitstring] = cost(G,bitstring_to_path(bitstring))
+            path = bitstring_to_path(bitstring)
+
+            # check if path valid 
+            if path is not None:
+                path_dic[bitstring] = cost(G,bitstring_to_path(bitstring))
 
 # sort dic by cost 
 path_dic = filter_unique_paths(G,dict(sorted(path_dic.items(), key=lambda item: item[1])))
+
 
 def format_counts_for_plot(path_dic,counts):
     sorted_counts = {}
@@ -68,7 +75,7 @@ plt.show()
 # save video 
 now = datetime.datetime.now()
 datetime_string = "%d-%m-%Y_%H-%M"
-save_path = f"{os.getcwd()}\\animations\\{now.strftime(datetime_string)}_{G.shape[0]}_cities.mp4"
+save_path = f"{os.getcwd()}\\animations\\{now.strftime(datetime_string)}_{algorithm}_{G.shape[0]}_cities.mp4"
 
 print(f"saving to : {save_path}")
 writervideo = animation.FFMpegWriter(fps=4) 
