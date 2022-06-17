@@ -7,7 +7,7 @@ from qiskit.tools.visualization import plot_histogram
 from helper import bitstring_to_path,cost
 import numpy as np
 import matplotlib.figure
-
+import pickle
 class InvalidMixerException(Exception):
     """Exception to raise if invalid solutions are measured (mixer has to preserve the feasible subspace)
 
@@ -164,7 +164,7 @@ def create_qaoa_circ(G:np.array,reps=1) -> QuantumCircuit:
     
     return ansatz
 
-def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],float]:
+def get_expectation(G:np.array, reps:int, shots=512,log_intermediate_counts=False)-> Callable[[List[float]],float]:
     """ Returns function that takes as argument a list of parameters [ß,y] and computes the expectation for that parametrization
 
     Args:
@@ -182,6 +182,12 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
     qc = create_qaoa_circ(G, reps=reps)
     qc = transpile(qc, simulator,optimization_level = 3)
 
+    # initialize saving of data
+    if log_intermediate_counts:
+        with open("alternating_operator_counts", "wb") as fp:   #Pickling
+            pickle.dump([], fp)
+
+
     def execute_circ(theta):
         # theta = [ß , y]
 
@@ -193,6 +199,15 @@ def get_expectation(G:np.array, reps:int, shots=512)-> Callable[[List[float]],fl
         counts = simulator.run(qc,parameter_binds=[params],  seed_simulator=10, 
                              nshots=shots).result().get_counts()
         
+        if log_intermediate_counts:
+            with open("alternating_operator_counts", "rb") as fp:   # Unpickling
+                        alternating_operator_counts = pickle.load(fp)
+                        alternating_operator_counts.append(counts)
+
+            with open("alternating_operator_counts", "wb") as fp:   #Pickling
+                pickle.dump(alternating_operator_counts,fp)
+
+
         return compute_expectation(counts, G)
     
     return execute_circ
@@ -282,10 +297,16 @@ def filter_unique_paths(G:np.array,counts:dict)->dict:
 
     cost_dict = {}
     for bitstring,count in counts.items():
-        path_cost = round(cost(G,bitstring_to_path(bitstring)),2)
-        if path_cost not in cost_dict:
-            cost_dict[path_cost] = [bitstring,count]
-        else:
-            cost_dict[path_cost] = [cost_dict[path_cost][0] , cost_dict[path_cost][1]+count]
+        path = bitstring_to_path(bitstring)
+        if path is not None :
+            path_cost = round(cost(G,path),2)
+
+            if path_cost not in cost_dict:
+                cost_dict[path_cost] = [bitstring,count]
+            else:
+                cost_dict[path_cost] = [cost_dict[path_cost][0] , cost_dict[path_cost][1]+count]
+        else :
+            # invalid path, e.g. from qaoa 
+            cost_dict[bitstring] = ['invalid',count]
 
     return {value[0] : value[1] for _,value in cost_dict.items()}
