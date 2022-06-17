@@ -244,7 +244,7 @@ def compute_expectation(counts:Dict, G:np.array, print_progress=True)->float:
           
     return avg/sum_count 
 
-def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_path=True,filter_unique_path=True)->Tuple[matplotlib.figure.Figure,Dict]:
+def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_path=True,filter_unique_path=True,save_plot=False)->Tuple[matplotlib.figure.Figure,Dict]:
     """Creates a plot of the measurements of the qaoa circuit for a given parametrization
 
     Args:
@@ -272,6 +272,15 @@ def analyse_result(G:np.array,theta_res:List[float],reps=1,transform_labels_to_p
     # remove duplicate path, e.g. [0,1,2] = [2,0,1]
     if filter_unique_path:
         counts = filter_unique_paths(G,counts)
+
+    if save_plot:
+        with open(".\\data\\alternating_operator_counts", "rb") as fp:   # Unpickling
+                    alternating_operator_counts = pickle.load(fp)
+                    alternating_operator_counts.append(counts)
+
+        with open(".\\data\\alternating_operator_counts", "wb") as fp:   #Pickling
+            pickle.dump(alternating_operator_counts,fp)
+
 
     fig = plot_histogram(counts, title='Result of Optimization')
 

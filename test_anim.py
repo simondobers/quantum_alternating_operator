@@ -13,6 +13,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+plt.style.use('seaborn')
+
 with open(".\\data\\alternating_operator_counts", "rb") as fp:   # Unpickling
     alternating_operator_counts = pickle.load(fp)
 
@@ -34,7 +36,7 @@ def format_counts_for_plot(path_dic,counts):
     sorted_counts = {}
     for bitstring,_ in path_dic.items():
         if bitstring in counts:
-            sorted_counts[bitstring] = counts[bitstring]
+            sorted_counts[bitstring] = counts[bitstring]/1024
         else : 
             sorted_counts[bitstring] = 0
 
@@ -49,22 +51,23 @@ for i,shot in enumerate(alternating_operator_counts):
 fig,ax = plt.subplots()
 first = filter_unique_paths(G,alternating_operator_counts[0])
 
-bar = ax.bar([bitstring_to_path(bitstring, return_as_string=True) for bitstring in first.keys()],first.values())
+bar = ax.bar([bitstring_to_path(bitstring, return_as_string=True) for bitstring in first.keys()],list(map(lambda x: x/1024,list(first.values()))))
 labels = [bitstring_to_path(bitstring, return_as_string=True) for bitstring in first.keys()]
-ax.set_xticklabels(labels,rotation=60)   
-bar.patches[0].set_color("r")
-
+ax.set_xticklabels(labels,rotation=45)   
+bar.patches[0].set_color("g")
+ax.set_ylim([0,1.])
 
 def update_plot(step):
 
     data = filter_unique_paths(G,alternating_operator_counts[step])
     ax.set_title(f"Iteration: {step}")
     for count, single_bar in zip(data.values(),bar.patches):
+        print(count)
         single_bar.set_height(count)
 
     return
 
-anim = animation.FuncAnimation(fig, update_plot,repeat=False, frames=50)
+anim = animation.FuncAnimation(fig, update_plot,repeat=False, frames=len(alternating_operator_counts))
 plt.show()
 
 
