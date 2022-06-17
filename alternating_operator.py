@@ -184,7 +184,7 @@ def get_expectation(G:np.array, reps:int, shots=512,log_intermediate_counts=Fals
 
     # initialize saving of data
     if log_intermediate_counts:
-        with open("alternating_operator_counts", "wb") as fp:   #Pickling
+        with open(".\\data\\alternating_operator_counts", "wb") as fp:   #Pickling
             pickle.dump([], fp)
 
 
@@ -200,11 +200,11 @@ def get_expectation(G:np.array, reps:int, shots=512,log_intermediate_counts=Fals
                              nshots=shots).result().get_counts()
         
         if log_intermediate_counts:
-            with open("alternating_operator_counts", "rb") as fp:   # Unpickling
+            with open(".\\data\\alternating_operator_counts", "rb") as fp:   # Unpickling
                         alternating_operator_counts = pickle.load(fp)
                         alternating_operator_counts.append(counts)
 
-            with open("alternating_operator_counts", "wb") as fp:   #Pickling
+            with open(".\\data\\alternating_operator_counts", "wb") as fp:   #Pickling
                 pickle.dump(alternating_operator_counts,fp)
 
 
