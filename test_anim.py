@@ -1,12 +1,7 @@
 
-from itertools import count
-from helper import create_tsp_graph,plot_tsp_graph,bitstring_to_path,cost
-from classical import solve_tsp_classical
-from alternating_operator import get_expectation,analyse_result,create_qaoa_circ,filter_unique_paths
-from scipy.optimize import minimize
-from qiskit.tools.visualization import plot_histogram
-from qiskit import transpile,Aer
-from qaoa import get_expectation_qaoa,create_classical_qaoa_circ
+import os
+from alternating_operator import filter_unique_paths
+from helper import bitstring_to_path,cost
 import pickle
 import datetime
 import numpy as np
@@ -62,7 +57,6 @@ def update_plot(step):
     data = filter_unique_paths(G,alternating_operator_counts[step])
     ax.set_title(f"Iteration: {step}")
     for count, single_bar in zip(data.values(),bar.patches):
-        print(count)
         single_bar.set_height(count)
 
     return
@@ -74,8 +68,8 @@ plt.show()
 # save video 
 now = datetime.datetime.now()
 datetime_string = "%d-%m-%Y_%H-%M"
-save_path = f"C:\\Users\\t-sdobers\\Desktop\\quantum_alternating_operator\\animations\\{now.strftime(datetime_string)}_{G.shape[0]}_cities.mp4"
+save_path = f"{os.getcwd()}\\animations\\{now.strftime(datetime_string)}_{G.shape[0]}_cities.mp4"
 
 print(f"saving to : {save_path}")
-writervideo = animation.FFMpegWriter(fps=60) 
+writervideo = animation.FFMpegWriter(fps=4) 
 anim.save(save_path, writer=writervideo)
