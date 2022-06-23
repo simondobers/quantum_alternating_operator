@@ -1,11 +1,12 @@
 # Quantum alternating operator ansatz and QAOA for the travelling salesperson problem
 
 
-This repo is a qiskit implementation of the [quantum alternating operator ansatz](https://arxiv.org/abs/1709.03489)) and the [Quantum approximate optimization algorithm](https://arxiv.org/abs/1411.4028) for the well known travelling salesperson problem. It was inspired by the work of [Radzihovsky, Murphy and Swofford](https://github.com/murphyjm/cs269q_radzihovsky_murphy_swofford).
+This repo is a qiskit implementation of the [quantum alternating operator ansatz](https://arxiv.org/abs/1709.03489) and the [Quantum approximate optimization algorithm](https://arxiv.org/abs/1411.4028) for the well known travelling salesperson problem. It was inspired by the work of [Radzihovsky, Murphy and Swofford](https://github.com/murphyjm/cs269q_radzihovsky_murphy_swofford).
 
 
 ## Installation
 To clone this repo use:
+
 `git clone git@github.com:simondobers/quantum_alternating_operator.git`
 
 Install required packages via
