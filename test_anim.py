@@ -71,7 +71,6 @@ ax.set_ylim([0,1.])
 def update_plot(step):
 
     data = alternating_operator_counts[step]
-
     ax.set_title(f"Iteration: {step}")
     for count, single_bar in zip(data.values(),bar.patches):
         single_bar.set_height(count)

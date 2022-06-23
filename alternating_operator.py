@@ -337,7 +337,7 @@ def filter_unique_paths(G:np.array,counts:dict, unique_cost_dict=None)->dict:
 
             else :
                 # invalid path, e.g. from qaoa 
-                cost_dict['invalid'] = ['invalid',count]
+                cost_dict[np.inf] = [np.inf,count]
 
             cost_dict = dict(sorted(cost_dict.items(), key=lambda item: item[0]))
 
