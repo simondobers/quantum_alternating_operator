@@ -9,11 +9,13 @@ To clone this repo use:
 `git clone git@github.com:simondobers/quantum_alternating_operator.git`
 
 Install required packages via
+
 `pip install -r requirements.txt`
 
 or
 
 `conda env create --file=environment.yml`
+
 if you have anaconda installed.
 
 ## Codebase
